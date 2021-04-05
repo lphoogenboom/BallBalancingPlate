@@ -1,5 +1,6 @@
 clear;clc;
 
+%% Init
 % World constants in BBP
 %	g = 9.81;
 %	mb = 0.05;
@@ -13,7 +14,7 @@ clear;clc;
 
 load('BBP.mat', 'ss')
 
-% Stability check;
+%%  Stability Analysis
 %eig(A) % for stable MPC control all eig(A) < 1
    
 % Controlability test:
@@ -22,31 +23,26 @@ load('BBP.mat', 'ss')
 % [V,D] = eig(ss.A);
 % D = diag(D);
 
-K = [];
-for i=0:1
-	K = [ K ss.A^i*ss.B];
-end
+% K = [];
+% for i=0:1
+% 	K = [ K ss.A^i*ss.B];
+% end
 
-[Ve,De] = eig(K); % IS NOT FULL RANK
-
-% define dimensions
-nx = size(ss.A,1);
-ny = size(ss.C,1);
-nu = size(ss.B,2);
-N = 5;
+% [Ve,De] = eig(K); % IS NOT FULL RANK
 
 %% LQR
 
-Q = 1*eye(nx);
-R = 2*eye(nu);
+cont.Q = 1*eye(size(ss.A,1));
+cont.R = 2*eye(size(ss.B,2));
+[P,L,G] = dare(ss.A,ss.B,cont.Q,cont.R); 
 
-[P,L,G] = dare(ss.A,ss.B,Q,R); 
-
-x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
+ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
 
 t = 0:30; 
-[x,u] = lqr(t,x0,nx,nu,ss.A,ss.B,G);
+[x,u] = lqr(t,ss.UserData.x0,nx,nu,ss.A,ss.B,G);
 
+
+%% Visuals
 figure(1)
 
 subplot(2,2,1)
