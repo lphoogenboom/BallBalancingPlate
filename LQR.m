@@ -1,6 +1,6 @@
+%% Init
 clear;clc;
 
-%% Init
 % World constants in BBP
 %	g = 9.81;
 %	mb = 0.05;
@@ -13,6 +13,7 @@ clear;clc;
 %	c = l/(2*Ip);
 
 load('BBP.mat', 'ss')
+ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
 
 %%  Stability Analysis
 %eig(A) % for stable MPC control all eig(A) < 1
@@ -36,7 +37,7 @@ cont.Q = 1*eye(size(ss.A,1));
 cont.R = 2*eye(size(ss.B,2));
 [P,L,G] = dare(ss.A,ss.B,cont.Q,cont.R); 
 
-ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
+
 
 t = 0:30; 
 [x,u] = lqr(t,ss.UserData.x0,nx,nu,ss.A,ss.B,G);
