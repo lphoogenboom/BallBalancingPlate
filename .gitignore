@@ -1,2 +1,5 @@
 # autosaves
 *.asv
+
+# System specific scripts
+*.bdic
