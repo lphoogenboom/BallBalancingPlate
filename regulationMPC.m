@@ -4,7 +4,6 @@ clear; clc; close all;
 addpath('./funcs/');
 
 load('vars/BBP.mat', 'ss');
-ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
 x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
 
 %% Regulation MPC
@@ -28,15 +27,15 @@ T=40;
 x_0 = x0;
 x(:,1) = x0;
 
-
 for k=1:T
     % Write the cost function in quadratic form
-    [H,h]=costgen(P(1:end-dim.nx,:),S(1:end-dim.nx,:),cont.Q,cont.R,dim,x_0); 
+    [H,h]=costgen(P(1:end-dim.nx,:),S(1:end-dim.nx,:),cont.Q,cont.R,dim,x_0);
 
     % Solve the constrained optimization problem (with YALMIP)
     u_uncon = sdpvar(dim.nu*dim.N,1);                % define optimization variable
+	x_con = sdpvar(length(x(:,1)),1);
 
-    Constraint=[];                  %define constraints
+    Constraint=[abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15, abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,abs(x_con(7))<=pi/4,abs(x_con(8))<=3];%define constraints
 
     Objective = 0.5*u_uncon'*H*u_uncon+h'*u_uncon;  %define cost function
 
@@ -101,12 +100,5 @@ function [T,S]=predmodgen(LTI,dim)
         for i=0:k-1
             S(k*dim.nx+1:(k+1)*dim.nx,i*dim.nu+1:(i+1)*dim.nu)=LTI.A^(k-1-i)*LTI.B;
         end
-    end
-
-end
-
-function [H,h]=costgen(T,S,Q,R,dim,x0)
-    Qbar=kron(eye(dim.N),Q); 
-    H=S'*Qbar*S+kron(eye(dim.N),R);   
-    h=S'*Qbar*T*x0;
+	end
 end
