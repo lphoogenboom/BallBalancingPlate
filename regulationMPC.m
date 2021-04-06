@@ -1,5 +1,7 @@
 %% Init
-clear; clc; clf;
+clear; clc; close all;
+
+addpath('./funcs/');
 
 load('vars/BBP.mat', 'ss');
 ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
@@ -17,7 +19,7 @@ dim.nx = size(ss.A,1);
 dim.nu = size(ss.B,2);
 dim.ny = size(ss.C,1);
 
-[P,S]=predmodgen(ss,dim);            %Generation of prediction model 
+[P,S]=predmodgen(ss,dim); % Generation of prediction model 
 
 % Set some options for YALMIP and solver
 options = sdpsettings('verbose',0,'solver','quadprog');

@@ -1,9 +1,5 @@
-function [H,h,const]=costgen(P,S,Q,R,dim,x0)
-
-Qbar=kron(eye(dim.N),Q); 
-
-H=S'*Qbar*S+kron(eye(dim.N),R);   
-h=S'*Qbar*P*x0;
-const=x0'*P'*Qbar*P*x0;
-
+function [H,h]=costgen(P,S,Q,R,dim)
+    Qbar=blkdiag(kron(eye(dim.N),Q),zeros(dim.nx)); 
+    H=S'*Qbar*S+kron(eye(dim.N),R);   
+    h=S'*Qbar*P;
 end
