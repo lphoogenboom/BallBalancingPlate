@@ -1,24 +1,25 @@
 %% Init
-clear; clc; close all;
-
+clear; 
+clc; 
+close all;
 addpath('./funcs/');
-
 load('vars/BBP.mat', 'ss');
-x0 = [0.04 -0.1 -0.05 0.1 -0.1 0 0.1 0]';
+ss = c2d(ss,.1); % discretization
 
 %% Regulation MPC
 
-ss = c2d(ss,.1); % discretization
-
+% Tuning variables
 cont.Q = 0.1*eye(size(ss.A,1));
 cont.R = 0.2*eye(size(ss.B,2));
-
+x0 = [0, -0.01, -0.05, 0.1, -0.01, 0, 0.01, 0]';
 dim.N = 15; % prediciton horizon
+
 dim.nx = size(ss.A,1);
 dim.nu = size(ss.B,2);
 dim.ny = size(ss.C,1);
 
 [P,S]=predmodgen(ss,dim); % Generation of prediction model 
+Pdare = idare(ss.A, ss.B, cont.Q, cont.R);
 
 % Set some options for YALMIP and solver
 options = sdpsettings('verbose',0,'solver','quadprog');
@@ -43,9 +44,10 @@ for k=1:t
     u_con = sdpvar(dim.nu*dim.N,1);   % define optimization variable
 	x_con = sdpvar(length(x(:,1)),1);
 
-    Constraint = [x'*P(1:8,1:8)*x<=0.56 ,abs(u_con)<=2.5, abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
-                  abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,abs(x_con(7))<=pi/4,...
-                  abs(x_con(8))<=3]; %define constraints
+    Constraint = [x_0'*Pdare(1:8,1:8)*x_0<=0.56 ,abs(u_con)<=2.5,... 
+                  abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
+                  abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
+                  abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
 
     Objective = 0.5*u_con'*H*u_con+h'*u_con;  %define cost function
 	
@@ -67,13 +69,10 @@ for k=1:t
     clear u_con
 end
 
-figure(1),
-for i = 1:dim.nx
-    hold on
-    stairs(T_1, x(i,:), 'LineWidth', 1.3);
-    hold off
-end
-legend('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8');
+figure(1)
+stairs(T_1, x(1,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(i,:), 'r', 'LineWidth', 1.3);
+legend('xb', 'xy');
 
 figure(2)
 for i = 1:dim.nu
