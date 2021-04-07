@@ -32,18 +32,18 @@ for k=1:T
     [H,h]=costgen(P(1:end-dim.nx,:),S(1:end-dim.nx,:),cont.Q,cont.R,dim,x_0);
 
     % Solve the constrained optimization problem (with YALMIP)
-    u_uncon = sdpvar(dim.nu*dim.N,1);                % define optimization variable
-	x_con = sdpvar(length(x(:,1)),1);
+    u_con = sdpvar(dim.nu*dim.N,1);                % define optimization variable
+	x_con = sdpvar(length(x(:,1)),8);
 
     Constraint=[u_con<=.5, abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15, abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,abs(x_con(7))<=pi/4,abs(x_con(8))<=3];%define constraints
 
-    Objective = 0.5*u_uncon'*H*u_uncon+h'*u_uncon;  %define cost function
+    Objective = 0.5*u_con'*H*u_con+h'*u_con;  %define cost function
 
     optimize(Constraint,Objective,options);  %solve the problem
-    u_uncon=value(u_uncon);                  %assign the solution to uopt
+    u_con=value(u_con);                  %assign the solution to uopt
 
     % Select the first input only
-    u_rec(:,k) = u_uncon(1:dim.nu);
+    u_rec(:,k) = u_con(1:dim.nu);
 
     % Compute the state/output evolution
     x(:,k+1)=ss.A*x_0 + ss.B*u_rec(:,k);
