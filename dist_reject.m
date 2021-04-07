@@ -59,7 +59,7 @@ Q = Q_gain*eye(nx);
 R = R_gain*eye(nu);
 
 % observer gain
-L=[0.5 0; 0 0.5];          
+L=[1, 0.6; 0.3, 1];          
 P = dare(A,B,Q,R);  
 
 [T,S] = predict_model(A,B,nx,nu,N);
