@@ -1,84 +1,48 @@
 %% Init
-clear;clc;
-
-% World constants in BBP
-%	g = 9.81;
-%	mb = 0.05;
-%	Ip = 0.12;
-%	l = 0.3;
-% 
-% Functions used for ss:
-%	a = (3/5)*g;
-%	b = -(mb*g)/Ip;
-%	c = l/(2*Ip);
-
+clear;
+clc;
 load('BBP.mat', 'ss')
-ss.UserData.x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
-
-%%  Stability Analysis
-%eig(A) % for stable MPC control all eig(A) < 1
-   
-% Controlability test:
-% rank = rank(ss.A);
-% Cont = ctrb(ss.A,ss.B);
-% [V,D] = eig(ss.A);
-% D = diag(D);
-
-% K = [];
-% for i=0:1
-% 	K = [ K ss.A^i*ss.B];
-% end
-
-% [Ve,De] = eig(K); % IS NOT FULL RANK
+ss = c2d(ss,.1); % discretization
 
 %% LQR
 
+% tuning parameters
+x0 = [0.2 -0.1 0.3 -0.2 0 0 0 0]';
 cont.Q = 1*eye(size(ss.A,1));
 cont.R = 2*eye(size(ss.B,2));
+
 [P,L,G] = dare(ss.A,ss.B,cont.Q,cont.R); 
 
+dim.nx = size(ss.A,1);
+dim.nu = size(ss.B,2);
+dim.ny = size(ss.C,1);
 
+% simulation
+time = 6;
+dt = 0.1; % timestep
+T = linspace(0, time, time/dt);
+T_1 = [T(1,:),time+dt];
+t = length(T);
 
-t = 0:30; 
-[x,u] = lqr(t,ss.UserData.x0,nx,nu,ss.A,ss.B,G);
-
+[x,u] = lqr(x0,t,ss,dim,G);
 
 %% Visuals
 figure(1)
+hold on
+stairs(T_1, x(1,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(3,:), 'r', 'LineWidth', 1.3);
+hold off
 
-subplot(2,2,1)
-plot(t,x(1,:));
-xlabel('k');
-ylabel('x_b');
-grid minor;
-
-subplot(2,2,2)
-plot(t,x(2,:));
-xlabel('k');
-ylabel('vx_b');
-grid minor;
-
-subplot(2,2,3)
-plot(t,x(3,:));
-xlabel('k');
-ylabel('y_b');
-grid minor;
-
-subplot(2,2,4)
-plot(t,x(4,:));
-xlabel('k');
-ylabel('vy_b');
-grid minor;
-
+legend('xb', 'yb');
 %% Functions
 
-function [x,u] = lqr(t,x0,nx,nu,A,B,G)
-    x = zeros(nx,length(t));   
-    u = zeros(nu,length(t));
+function [x,u] = lqr(x0,t,ss,dim,G)
+    x = zeros(dim.nx,length(t));   
+    u = zeros(dim.nu,length(t));
     x(:,1) = x0;
 
-    for k = t(2:end)
+    for k = 1:t
         u(:,k) = -G*x(:,k);
-        x(:,k+1) = A*x(:,k)+B*u(:,k);
+        x(:,k+1) = ss.A*x(:,k) + ss.B*u(:,k);
     end
 end
