@@ -33,7 +33,7 @@ t = length(T);
 % initial conditions
 x_0 = x0;
 x(:,1) = x0;
-x_rec = []
+x_rec = [];
 
 for k=1:t
     % Write the cost function in quadratic form
@@ -43,7 +43,7 @@ for k=1:t
     u_con = sdpvar(dim.nu*dim.N,1);   % define optimization variable
 	x_con = sdpvar(length(x(:,1)),1);
 
-    Constraint = [abs(u_con)<=2.5, abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
+    Constraint = [x'*P(1:8,1:8)*x<=0.56 ,abs(u_con)<=2.5, abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
                   abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,abs(x_con(7))<=pi/4,...
                   abs(x_con(8))<=3]; %define constraints
 
