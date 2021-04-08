@@ -2,13 +2,15 @@
 clear; 
 clc; 
 close all;
+clear functions;
+% addpath('./funcs/');
 load('vars/BBP.mat', 'ss');
 ss = c2d(ss,.1); % discretization
 
 %% Regulation MPC
 
 % Tuning variables
-cont.Q = 1*eye(size(ss.A,1));
+cont.Q = 2*eye(size(ss.A,1));
 cont.R = 2*eye(size(ss.B,2));
 x0 = [.1, 0.1, .1, -.15, 0, 0, 0, 0]';
 dim.N = 15; % prediciton horizon
@@ -24,8 +26,8 @@ Pdare = idare(ss.A, ss.B, cont.Q, cont.R);
 options = sdpsettings('verbose',0,'solver','quadprog');
 
 % simulation
-time = 6;
-dt = 0.5; % timestep
+time = 20;
+dt = 0.2; % timestep
 T = linspace(0, time, time/dt);
 T_1 = [T(1,:),time+dt];
 t = length(T);
@@ -44,17 +46,17 @@ for k=1:t
     u_con = sdpvar(dim.nu*dim.N,1);   % define optimization variable
 	x_con = sdpvar(length(x(:,1)),1);
 
-    Constraint = [abs(u_con)<=1.5,... 
+    Constraint = [abs(u_con)<=2.5,... 
                   abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
                   abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
                   abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
               
     if k==t
-        Constraint = [x(:,k)'*Pdare(1:8,1:8)*x(:,k)<=0.56 ,abs(u_con)<=2.5,... 
+        Constraint = [x_0'*Pdare(1:8,1:8)*x_0<=0.56 ,abs(u_con)<=2.5,... 
                         abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
                         abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
                         abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
-%     end
+    end
 
     Objective = 0.5*u_con'*H*u_con+h'*u_con;  %define cost function
 	
@@ -76,19 +78,35 @@ for k=1:t
     clear u_con
 end
 
+%%
+
 figure(1)
 clf; hold on; grid on;
-stairs(T_1, x_rec(1,:), 'b', 'LineWidth', 1.3);
-stairs(T_1, x_rec(3,:), 'r', 'LineWidth', 1.3);
-legend('xb', 'xy');
+stairs(T_1, x(1,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(3,:), 'r', 'LineWidth', 1.3);
 
 figure(2)
+clf; hold on; grid on;
 for i = 1:dim.nu
-    hold on
     stairs(T, u_rec(i,:), 'LineWidth', 1.3);
-    hold off
 end
-legend('u1', 'u2', 'u3', 'u4');
+
+
+figure(3)
+clf; hold on; grid on;
+stairs(T_1, x(2,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(4,:), 'r', 'LineWidth', 1.3);
+
+figure(4)
+clf; hold on; grid on;
+stairs(T_1, x(5,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(7,:), 'r', 'LineWidth', 1.3);
+
+figure(5)
+clf; hold on; grid on;
+stairs(T_1, x(6,:), 'b', 'LineWidth', 1.3);
+stairs(T_1, x(8,:), 'r', 'LineWidth', 1.3);
+
 
 %% Functions
 function [T,S]=predmodgen(ss,dim)
