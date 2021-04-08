@@ -37,6 +37,7 @@ x(:,1) = x0;
 x_rec = [];
 
 for k=1:t
+    fprintf('Sim time: '+string(k*dt)+'/'+string(t*dt)+'\n')
     % Write the cost function in quadratic form
     [H,h]=costgen(P(1:end-dim.nx,:),S(1:end-dim.nx,:),cont.Q,cont.R,dim,x_0);
 
