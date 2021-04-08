@@ -1,3 +1,4 @@
+clear; clc;
 %% State space
 % Constants:
 g = 9.81;
@@ -97,7 +98,7 @@ for i = 1:t
    end
 end
         
-[x_t,y_t] = ref_tracker(x0,t,A,B,C,Cd,d,y_ref,nx,nu,nd,ny,N,H,h,L);
+[x_t,y_t] = ref_tracker(x0,t,A,B,C,Cd,d,y_ref,nx,nu,nd,ny,N,H,h,L,P);
 
 % plot values
 figure(1)
@@ -145,7 +146,7 @@ function [H,h] = cost_model(S,T,nx,nu,N,Q,P,R)
     h = [hx0 hxref huref];
 end
 
-function [x,y] = ref_tracker(x0,t,A,B,C,Cd,d,yref,nx,nu,nd,ny,N,H,h,L)
+function [x,y] = ref_tracker(x0,t,A,B,C,Cd,d,yref,nx,nu,nd,ny,N,H,h,L,Pdare)
     % derive optimal inputs
     x = zeros(nx,t+1);
     x(:,1) = x0;
@@ -174,7 +175,12 @@ function [x,y] = ref_tracker(x0,t,A,B,C,Cd,d,yref,nx,nu,nd,ny,N,H,h,L)
         ur = xur(nx+1:end);
 
         u_opt = sdpvar(nu*N,1);
-        Constraint=[];  % add contraints later
+        
+        Constraint = [x0'*Pdare*x0<=0.56 ,abs(u_opt)<=2.5,... 
+                      abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
+                      abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
+                      abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
+        
         Objective = 0.5*u_opt'*H*u_opt+(h*[x(:,k); xr; ur])'*u_opt;
         optimize(Constraint,Objective);
         u_opt = value(u_opt);
