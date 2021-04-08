@@ -80,11 +80,11 @@ nd = 2;
 
 for i = 1:t
     if i >= 20 && i <= 30
-       d(1,i) = 0.02;
-       d(2,i) = -0.03;
+       d(1,i) = 0.002;
+       d(2,i) = -0.003;
     elseif i >= 50 && i <= 65
-       d(1,i) = -0.03;
-       d(2,i) = 0.02;
+       d(1,i) = -0.003;
+       d(2,i) = 0.002;
     end
 end
 
@@ -93,8 +93,8 @@ y_ref = zeros(2, t);
 
 for i = 1:t
    if i >= 40
-       y_ref(1,i) = 0.1;
-       y_ref(2,i) = -0.1;
+       y_ref(1,i) = 0.01;
+       y_ref(2,i) = -0.02;
    end
 end
         
@@ -176,8 +176,8 @@ function [x,y] = ref_tracker(x0,t,A,B,C,Cd,d,yref,nx,nu,nd,ny,N,H,h,L,Pdare)
 
         u_opt = sdpvar(nu*N,1);
         x_opt = sdpvar(8,1);
-        
-        Constraint = [x(:,k)'*Pdare*x(:,k)<=5.56 ,abs(u_opt)<=2.5,... 
+        % 0.56
+        Constraint = [x(:,k)'*Pdare*x(:,k)<=.56 ,abs(u_opt)<=2.5,... 
                       abs(x_opt(1))<=.15, abs(x_opt(2))<=2, abs(x_opt(3))<=.15,...
                       abs(x_opt(4))<=2, abs(x_opt(5))<=pi/4,abs(x_opt(6))<=3,...
                       abs(x_opt(7))<=pi/4, abs(x_opt(8))<=3]; %define constraints
