@@ -8,7 +8,8 @@ ss = c2d(ss,.1); % discretization
 %% LQR
 
 % tuning parameters
-x0 = [.1, 0.1, .1, -.15, 0, 0, 0, 0]';
+% x0 = [.01, 0.01, .03, -.05, 0, 0, 0, 0]'; inside temrinal set
+x0 = [-.1, -0.05, .12, -.1, .01, .01, .01, .01]';
 cont.Q = .5*eye(size(ss.A,1));
 cont.R = .3*eye(size(ss.B,2));
 

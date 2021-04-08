@@ -8,12 +8,14 @@ load('vars/BBP.mat', 'ss');
 ss = c2d(ss,.1); % discretization
 
 %% Regulation MPC
+gains = [0.1 .2 .5 1];
 
+for i = 1:4
 % Tuning variables
 cont.Q = .5*eye(size(ss.A,1));
-cont.R = .3*eye(size(ss.B,2));
+cont.R = gains(i)*eye(size(ss.B,2));
 % x0 = [.01, 0.01, .03, -.05, 0, 0, 0, 0]'; inside temrinal set
-x0 = [-.1, -0.05, .12, -.1, .01, .01, .01, .01]';
+x0 = [.12, -0.1, .12, -.1, .01, .01, .01, .01]';
 dim.N = 15; % prediciton horizon
 
 dim.nx = size(ss.A,1);
@@ -39,7 +41,7 @@ x(:,1) = x0;
 x_rec = [];
 
 for k=1:t
-    fprintf('Sim time: '+string(k*dt)+'/'+string(t*dt)+'\n')
+    fprintf('Sim '+ string(i) +' time: '+string(k*dt)+'/'+string(t*dt)+'\n')
     % Write the cost function in quadratic form
     [H,h]=costgen(P(1:end-dim.nx,:),S(1:end-dim.nx,:),cont.Q,cont.R,dim,x_0);
 
@@ -53,7 +55,7 @@ for k=1:t
                   abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
               
     if k==t
-        Constraint = [x_0'*Pdare(1:8,1:8)*x_0<=0.56 ,abs(u_con)<=2.5,... 
+        Constraint = [x(:,k)'*Pdare*x(:,k)<=0.56 ,abs(u_con)<=1.5,... 
                         abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
                         abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
                         abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
@@ -79,34 +81,35 @@ for k=1:t
     clear u_con
 end
 
-%%
-
 figure(1)
-clf; hold on; grid on;
-stairs(T_1, x(1,:), 'b', 'LineWidth', 1.3);
-stairs(T_1, x(3,:), 'r', 'LineWidth', 1.3);
-
-figure(2)
-clf; hold on; grid on;
-for i = 1:dim.nu
-    stairs(T, u_rec(i,:), 'LineWidth', 1.3);
+hold on; grid on;
+stairs(T_1, x(1,:), 'LineWidth', 1.3);
+legend('Q=0.1')
 end
 
+%%
 
-figure(3)
-clf; hold on; grid on;
-stairs(T_1, x(2,:), 'b', 'LineWidth', 1.3);
-stairs(T_1, x(4,:), 'r', 'LineWidth', 1.3);
-
-figure(4)
-clf; hold on; grid on;
-stairs(T_1, x(5,:), 'b', 'LineWidth', 1.3);
-stairs(T_1, x(7,:), 'r', 'LineWidth', 1.3);
-
-figure(5)
-clf; hold on; grid on;
-stairs(T_1, x(6,:), 'b', 'LineWidth', 1.3);
-stairs(T_1, x(8,:), 'r', 'LineWidth', 1.3);
+% figure(2)
+% clf; hold on; grid on;
+% for i = 1:dim.nu
+%     stairs(T, u_rec(i,:), 'LineWidth', 1.3);
+% end
+% 
+% 
+% figure(3)
+% clf; hold on; grid on;
+% stairs(T_1, x(2,:), 'b', 'LineWidth', 1.3);
+% stairs(T_1, x(4,:), 'r', 'LineWidth', 1.3);
+% 
+% figure(4)
+% clf; hold on; grid on;
+% stairs(T_1, x(5,:), 'b', 'LineWidth', 1.3);
+% stairs(T_1, x(7,:), 'r', 'LineWidth', 1.3);
+% 
+% figure(5)
+% clf; hold on; grid on;
+% stairs(T_1, x(6,:), 'b', 'LineWidth', 1.3);
+% stairs(T_1, x(8,:), 'r', 'LineWidth', 1.3);
 
 
 %% Functions
