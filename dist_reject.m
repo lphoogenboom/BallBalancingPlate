@@ -175,19 +175,25 @@ function [x,y] = ref_tracker(x0,t,A,B,C,Cd,d,yref,nx,nu,nd,ny,N,H,h,L,Pdare)
         ur = xur(nx+1:end);
 
         u_opt = sdpvar(nu*N,1);
+        x_opt = sdpvar(8,1);
         
-        Constraint = [x0'*Pdare*x0<=0.56 ,abs(u_opt)<=2.5,... 
-                      abs(x_con(1))<=.15, abs(x_con(2))<=2, abs(x_con(3))<=.15,...
-                      abs(x_con(4))<=2, abs(x_con(5))<=pi/4,abs(x_con(6))<=3,...
-                      abs(x_con(7))<=pi/4, abs(x_con(8))<=3]; %define constraints
+        Constraint = [x(:,k)'*Pdare*x(:,k)<=5.56 ,abs(u_opt)<=2.5,... 
+                      abs(x_opt(1))<=.15, abs(x_opt(2))<=2, abs(x_opt(3))<=.15,...
+                      abs(x_opt(4))<=2, abs(x_opt(5))<=pi/4,abs(x_opt(6))<=3,...
+                      abs(x_opt(7))<=pi/4, abs(x_opt(8))<=3]; %define constraints
         
         Objective = 0.5*u_opt'*H*u_opt+(h*[x(:,k); xr; ur])'*u_opt;
         optimize(Constraint,Objective);
+        
         u_opt = value(u_opt);
+        x_opt = value(x_opt);
 
         % Select the first input only
         u_rec=zeros(nu,t);
         u_rec(:,k) = u_opt(1:nu);
+        
+        % save optimzed x
+        x_rec = x_opt;
 
         % Compute the state/output evolution
         x(:,k+1) = A*x(:,k) + B*u_rec(:,k);
