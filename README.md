@@ -1,5 +1,6 @@
 # Ball Balancing Plate
 This is a project for the course 'SC42125: Model Predictive Control' at the Delft University of Technology
+In this project various approaches to MPC are used to stabilize and freely control a ball balanced on a actuted plate.
 
 ## Students
 - Laurens Hoogenboom (4609638)
@@ -8,3 +9,7 @@ This is a project for the course 'SC42125: Model Predictive Control' at the Delf
 ## Dependancies
 - MATLAB
 - YALMIP
+
+## Instructions
+Any Script in the main folder can be ran by itself if YALMIP is added to path. ./misc/addYalmip.m does this automatically for linux systems assuming this repo is cloned in ~/git/.
+
