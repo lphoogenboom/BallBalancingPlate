@@ -12,4 +12,4 @@ In this project various approaches to MPC are used to stabilize and freely contr
 
 ## Instructions
 Any Script in the main folder can be ran by itself if YALMIP is added to path. ./misc/addYalmip.m does this automatically for linux systems assuming this repo is cloned in ~/git/.
-
+YALMIP is also assumed to be cloned in this directory.
