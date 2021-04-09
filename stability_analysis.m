@@ -1,17 +1,15 @@
 %% Init
 clear; clc; close all;
-
 addpath('./funcs/');
-
 load('vars/BBP.mat', 'ss');
-x0 = [0.1, 0, -0.05, 0.05, -0.04, 0, 0, 0]';
+x0 = [0.12, 0, -0.08, 0.1, 0, 0, 0, 0]';
 
 %% Model definition
 
 ss = c2d(ss,.1); % discretization
 
-cont.Q = 0.1*eye(size(ss.A,1));
-cont.R = 0.2*eye(size(ss.B,2));
+cont.Q = 0.5*eye(size(ss.A,1));
+cont.R = 0.3*eye(size(ss.B,2));
 
 dim.N = 15; % prediciton horizon
 dim.nx = size(ss.A,1);
@@ -79,8 +77,8 @@ for k=1:t
     u_rec(:,k) = u_uncon(1:dim.nu);
 
     % find costs at x(k), u(k)
-    l_ux(:,k) = x_0'*cont.Q*x_0 + u_rec(:,k)'*cont.R*u_rec(:,k);
-    Vf(:,k) = x_0'*Pdare*x_0;
+    l_ux(:,k) = 0.5*x_0'*cont.Q*x_0 + 0.1*u_rec(:,k)'*cont.R*u_rec(:,k);
+    Vf(:,k) = 0.5*x_0'*Pdare*x_0;
     
     % Compute the state/output evolution
     x(:,k+1) = ss.A*x_0 + ss.B*u_rec(:,k);
@@ -89,7 +87,7 @@ for k=1:t
     x_0=x(:,k+1);
     
     % find cost at x(k+1)
-    VfP(:,k) = x_0'*Pdare*x_0;
+    VfP(:,k) = 0.5*x_0'*Pdare*x_0;
 
     clear u_uncon
 end
@@ -103,7 +101,28 @@ hold off
 
 legend('Vf(x(k+1))-Vf(x(k))', '-l(x(k),u(k))');
 
+%% Functions
+function [T,S]=predmodgen(ss,dim)
+    % Prediction matrix from initial state
+    T = zeros(dim.nx*(dim.N+1),dim.nx);
+    for k = 0:dim.N
+        T(k*dim.nx+1:(k+1)*dim.nx,:)=ss.A^k;
+    end
 
+    % Prediction matrix from input
+    S = zeros(dim.nx*(dim.N+1),dim.nu*(dim.N));
+    for k = 1:dim.N
+        for i = 0:k-1
+            S(k*dim.nx+1:(k+1)*dim.nx,i*dim.nu+1:(i+1)*dim.nu)=ss.A^(k-1-i)*ss.B;
+        end
+	end
+end
+
+function [H,h]=costgen(T,S,Q,R,dim,x0)
+    Qbar=kron(eye(dim.N),Q); 
+    H=S'*Qbar*S+kron(eye(dim.N),R);   
+    h=S'*Qbar*T*x0;
+end
 
 
 
